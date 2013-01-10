@@ -30,6 +30,7 @@ import org.drools.guvnor.client.rpc.BuilderResultLine;
 import org.drools.guvnor.server.builder.ModuleAssembler;
 import org.drools.guvnor.server.builder.ModuleAssemblerManager;
 import org.drools.guvnor.server.jaxrs.jaxb.Asset;
+import org.drools.guvnor.server.jaxrs.jaxb.PackageAsset;
 import org.drools.guvnor.server.jaxrs.jaxb.Package;
 import org.drools.repository.AssetHistoryIterator;
 import org.drools.repository.AssetItem;
@@ -1009,6 +1010,30 @@ public class PackageResource extends Resource {
         return asset;
     }
     
+    /**
+     * JIRA issue GUVNOR-1951
+     * 
+     * @param assetUuid - the UUID of the asset
+     * @return
+     */
+    @GET
+    @Path("assets/uuid/{uuid}")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public PackageAsset getAssetByUUID(
+            @PathParam("uuid") String assetUuid) {
+        try {
+            AssetItem asset = rulesRepository.loadAssetByUUID(assetUuid);
+            ModuleItem module = asset.getModule();
+            PackageAsset pair = new PackageAsset();
+            pair.setAsset(toAsset(asset, uriInfo));
+            pair.setPackage(toPackage(module, uriInfo));
+            return pair;
+        } catch (RuntimeException e) {
+            throw new WebApplicationException(e);
+        }
+    }
+    
+    
     private DateFormat createDateFormat(){
         return new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z", Locale.US);
     }
@@ -1031,6 +1056,8 @@ public class PackageResource extends Resource {
 
         return gmtCal;
     }
+    
+    
 }
 
 
